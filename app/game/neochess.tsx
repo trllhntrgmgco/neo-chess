@@ -405,26 +405,28 @@ export default function NeoChessGame() {
 
         <View style={styles.boardContainer}>
           <View style={styles.board}>
-            {gameState.board.map((row, rowIndex) =>
-              row.map((piece, colIndex) => (
-                <TouchableOpacity
-                  key={`${rowIndex}-${colIndex}`}
-                  style={getSquareStyle(rowIndex, colIndex)}
-                  onPress={() => handleSquarePress(rowIndex, colIndex)}
-                >
-                  {piece && (
-                    <Text
-                      style={[
-                        styles.piece,
-                        { color: piece.player === 0 ? '#888' : PLAYER_COLORS[piece.player as keyof typeof PLAYER_COLORS] },
-                      ]}
-                    >
-                      {PIECES[piece.type]}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              ))
-            )}
+            {gameState.board.map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.boardRow}>
+                {row.map((piece, colIndex) => (
+                  <TouchableOpacity
+                    key={`${rowIndex}-${colIndex}`}
+                    style={getSquareStyle(rowIndex, colIndex)}
+                    onPress={() => handleSquarePress(rowIndex, colIndex)}
+                  >
+                    {piece && (
+                      <Text
+                        style={[
+                          styles.piece,
+                          { color: piece.player === 0 ? '#888' : PLAYER_COLORS[piece.player as keyof typeof PLAYER_COLORS] },
+                        ]}
+                      >
+                        {PIECES[piece.type]}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ))}
           </View>
         </View>
 
@@ -559,12 +561,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   board: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: SQUARE_SIZE * 9,
     backgroundColor: 'rgba(0,0,0,0.8)',
     borderRadius: 10,
     padding: 5,
+  },
+  boardRow: {
+    flexDirection: 'row',
   },
   square: {
     width: SQUARE_SIZE,
