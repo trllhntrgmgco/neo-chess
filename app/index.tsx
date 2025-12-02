@@ -15,66 +15,10 @@ const chessVariants: VariantInfo[] = [
   {
     route: '/game/neochess',
     name: 'Neo Chess',
-    description: 'Classic chess with traditional rules. Checkmate the opponent\'s king to win.',
+    description: '..',
     difficulty: 'Beginner',
-    players: '2 Players'
+    players: '2-4 Players'
   },
-  {
-    route: '/game/chess960',
-    name: 'Chess960 (Fischer Random)',
-    description: 'Starting position is randomized. Same rules as standard chess but eliminates opening theory.',
-    difficulty: 'Intermediate',
-    players: '2 Players'
-  },
-  {
-    route: '/game/three-check',
-    name: 'Three-Check',
-    description: 'Win by checking the opponent\'s king three times or by checkmate.',
-    difficulty: 'Intermediate',
-    players: '2 Players'
-  },
-  {
-    route: '/game/king-of-the-hill',
-    name: 'King of the Hill',
-    description: 'Win by moving your king to one of the four center squares or by checkmate.',
-    difficulty: 'Intermediate',
-    players: '2 Players'
-  },
-  {
-    route: '/game/atomic',
-    name: 'Atomic Chess',
-    description: 'Captures cause explosions! All pieces (except pawns) adjacent to the capture explode.',
-    difficulty: 'Advanced',
-    players: '2 Players'
-  },
-  {
-    route: '/game/antichess',
-    name: 'Antichess (Losing Chess)',
-    description: 'The goal is to lose all your pieces or be stalemated. Captures are mandatory.',
-    difficulty: 'Advanced',
-    players: '2 Players'
-  },
-  {
-    route: '/game/horde',
-    name: 'Horde',
-    description: 'White has 36 pawns vs Black\'s standard pieces. White wins by checkmate, Black by capturing all pawns.',
-    difficulty: 'Advanced',
-    players: '2 Players'
-  },
-  {
-    route: '/game/racing-kings',
-    name: 'Racing Kings',
-    description: 'Race your king to the 8th rank. No checks allowed, first to reach the back rank wins.',
-    difficulty: 'Intermediate',
-    players: '2 Players'
-  },
-  {
-    route: '/game/crazyhouse',
-    name: 'Crazyhouse',
-    description: 'Captured pieces can be dropped back on the board as your own pieces.',
-    difficulty: 'Advanced',
-    players: '2 Players'
-  }
 ];
 
 export default function GameSelectionScreen() {
