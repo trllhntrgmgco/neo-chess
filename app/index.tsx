@@ -13,7 +13,7 @@ interface VariantInfo {
 
 const chessVariants: VariantInfo[] = [
   {
-    route: '/game/neochess',
+    route: '/game/neochess/start',
     name: 'Neo Chess',
     description: '..',
     difficulty: 'Beginner',

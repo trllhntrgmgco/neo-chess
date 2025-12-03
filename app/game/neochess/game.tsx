@@ -1,14 +1,14 @@
-// NeoChessGame.tsx
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -34,6 +34,7 @@ interface Player {
   eliminated: boolean;
   ai: boolean;
   color: string;
+  active: boolean;
 }
 
 interface GameState {
@@ -44,6 +45,7 @@ interface GameState {
   validMoves: Position[];
   gameActive: boolean;
   aiSpeed: number;
+  numPlayers: number;
 }
 
 const PIECES = {
@@ -61,19 +63,24 @@ const PLAYER_COLORS = {
 };
 
 export default function NeoChessGame() {
+  const router = useRouter();
+  const { players } = useLocalSearchParams();
+  const numPlayers = parseInt(players as string) || 4;
+
   const [gameState, setGameState] = useState<GameState>({
     board: [],
     currentPlayer: 1,
     players: {
-      1: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: false, color: '#ff0000' },
-      2: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#00ff00' },
-      3: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#0000ff' },
-      4: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#ffff00' },
+      1: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: false, color: '#ff0000', active: true },
+      2: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#00ff00', active: true },
+      3: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#0000ff', active: numPlayers >= 3 },
+      4: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#ffff00', active: numPlayers >= 4 },
     },
     selectedPiece: null,
     validMoves: [],
     gameActive: false,
     aiSpeed: 1000,
+    numPlayers,
   });
 
   const [showRules, setShowRules] = useState(false);
@@ -88,42 +95,47 @@ export default function NeoChessGame() {
     board[4][3] = { type: 'ROOK', player: 0 };
     board[4][5] = { type: 'ROOK', player: 0 };
 
-    // Player 1 (Red) - Top Left
+    // Player 1 (Red) - Top Left - Always active
     board[0][0] = { type: 'KNIGHT', player: 1 };
     board[1][0] = { type: 'PAWN', player: 1 };
     board[0][1] = { type: 'PAWN', player: 1 };
 
-    // Player 2 (Green) - Top Right
+    // Player 2 (Green) - Top Right - Always active
     board[0][8] = { type: 'KNIGHT', player: 2 };
     board[0][7] = { type: 'PAWN', player: 2 };
     board[1][8] = { type: 'PAWN', player: 2 };
 
-    // Player 3 (Blue) - Bottom Right
-    board[8][8] = { type: 'KNIGHT', player: 3 };
-    board[7][8] = { type: 'PAWN', player: 3 };
-    board[8][7] = { type: 'PAWN', player: 3 };
+    // Player 3 (Blue) - Bottom Right - Optional
+    if (numPlayers >= 3) {
+      board[8][8] = { type: 'KNIGHT', player: 3 };
+      board[7][8] = { type: 'PAWN', player: 3 };
+      board[8][7] = { type: 'PAWN', player: 3 };
+    }
 
-    // Player 4 (Yellow) - Bottom Left
-    board[8][0] = { type: 'KNIGHT', player: 4 };
-    board[8][1] = { type: 'PAWN', player: 4 };
-    board[7][0] = { type: 'PAWN', player: 4 };
+    // Player 4 (Yellow) - Bottom Left - Optional
+    if (numPlayers >= 4) {
+      board[8][0] = { type: 'KNIGHT', player: 4 };
+      board[8][1] = { type: 'PAWN', player: 4 };
+      board[7][0] = { type: 'PAWN', player: 4 };
+    }
 
     setGameState({
       board,
       currentPlayer: 1,
       players: {
-        1: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: false, color: '#ff0000' },
-        2: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#00ff00' },
-        3: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#0000ff' },
-        4: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#ffff00' },
+        1: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: false, color: '#ff0000', active: true },
+        2: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#00ff00', active: true },
+        3: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#0000ff', active: numPlayers >= 3 },
+        4: { pieces: 3, captures: 0, upgrades: 0, eliminated: false, ai: true, color: '#ffff00', active: numPlayers >= 4 },
       },
       selectedPiece: null,
       validMoves: [],
       gameActive: true,
       aiSpeed: 1000,
+      numPlayers,
     });
     setWinner(null);
-  }, []);
+  }, [numPlayers]);
 
   useEffect(() => {
     initializeGame();
@@ -222,7 +234,10 @@ export default function NeoChessGame() {
     }
 
     // Check for victory
-    const activePlayers = Object.keys(newPlayers).filter(p => !newPlayers[parseInt(p)].eliminated);
+    const activePlayers = Object.keys(newPlayers).filter(p => {
+      const player = newPlayers[parseInt(p)];
+      return player.active && !player.eliminated;
+    });
 
     if (activePlayers.length === 1) {
       setWinner(parseInt(activePlayers[0]));
@@ -237,7 +252,7 @@ export default function NeoChessGame() {
     } else {
       // Next turn
       let nextPlayer = (gameState.currentPlayer % 4) + 1;
-      while (newPlayers[nextPlayer].eliminated) {
+      while (!newPlayers[nextPlayer].active || newPlayers[nextPlayer].eliminated) {
         nextPlayer = (nextPlayer % 4) + 1;
       }
 
@@ -369,9 +384,12 @@ export default function NeoChessGame() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>NEO-CHESS</Text>
-        <Text style={styles.subtitle}>4-Player Quantum Battle Arena</Text>
+        <Text style={styles.subtitle}>{numPlayers}-Player Battle</Text>
 
         <View style={styles.controls}>
+          <TouchableOpacity style={styles.button} onPress={() => router.back()}>
+            <Text style={styles.buttonText}>← Back</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={initializeGame}>
             <Text style={styles.buttonText}>New Game</Text>
           </TouchableOpacity>
@@ -381,26 +399,29 @@ export default function NeoChessGame() {
         </View>
 
         <View style={styles.playersContainer}>
-          {[1, 2, 3, 4].map(p => (
-            <View
-              key={p}
-              style={[
-                styles.playerCard,
-                { borderColor: PLAYER_COLORS[p as keyof typeof PLAYER_COLORS] },
-                gameState.currentPlayer === p && styles.activePlayer,
-                gameState.players[p].eliminated && styles.eliminatedPlayer,
-              ]}
-            >
-              <Text style={[styles.playerName, { color: PLAYER_COLORS[p as keyof typeof PLAYER_COLORS] }]}>
-                P{p} {gameState.players[p].ai ? '(AI)' : ''}
-              </Text>
-              <View style={styles.playerStats}>
-                <Text style={styles.statText}>🎯 {gameState.players[p].pieces}</Text>
-                <Text style={styles.statText}>⚔️ {gameState.players[p].captures}</Text>
-                <Text style={styles.statText}>👑 {gameState.players[p].upgrades}</Text>
+          {[1, 2, 3, 4].map(p => {
+            if (!gameState.players[p].active) return null;
+            return (
+              <View
+                key={p}
+                style={[
+                  styles.playerCard,
+                  { borderColor: PLAYER_COLORS[p as keyof typeof PLAYER_COLORS] },
+                  gameState.currentPlayer === p && styles.activePlayer,
+                  gameState.players[p].eliminated && styles.eliminatedPlayer,
+                ]}
+              >
+                <Text style={[styles.playerName, { color: PLAYER_COLORS[p as keyof typeof PLAYER_COLORS] }]}>
+                  P{p} {gameState.players[p].ai ? '(AI)' : ''}
+                </Text>
+                <View style={styles.playerStats}>
+                  <Text style={styles.statText}>🎯 {gameState.players[p].pieces}</Text>
+                  <Text style={styles.statText}>⚔️ {gameState.players[p].captures}</Text>
+                  <Text style={styles.statText}>👑 {gameState.players[p].upgrades}</Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         <View style={styles.boardContainer}>
